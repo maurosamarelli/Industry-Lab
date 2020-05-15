@@ -15,5 +15,5 @@ Dict_Modeling = {
     "dims_clust": ["media_coppia_zero", "media_coppia_finale"],
     "kmax_clust": 10,
     "n_clusters": 2,
-    "n_folds_cv": 5
+    "n_folds_cv": 10
 }

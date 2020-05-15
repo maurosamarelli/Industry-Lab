@@ -151,3 +151,5 @@ c0 = cluster0.query("fold != 3")[['media_pressione_velocita_a_regime', 'media_po
 c1 = cluster1.query("fold != 1")[['media_pressione_velocita_a_regime', 'media_portata_velocita_1']]
 c0.to_csv(Path(Dict_General["path_data"]).joinpath("cluster0.csv"), index_label=False)
 c1.to_csv(Path(Dict_General["path_data"]).joinpath("cluster1.csv"), index_label=False)
+
+## sjsjsdjsdjdndsjsd
