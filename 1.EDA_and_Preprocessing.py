@@ -10,6 +10,7 @@ from scipy.stats import zscore
 from Config_File import Dict_General
 from Config_File import Dict_EDA_Prepro
 from sklearn.impute import SimpleImputer
+from sklearn.linear_model import LinearRegression
 import warnings
 warnings.simplefilter("ignore")
 
@@ -23,73 +24,116 @@ df = pd.read_csv(Path(Dict_General["path_data"]).joinpath("caso2_ALL_ESITI.csv")
 #########################################################################################
 #####--- 2.0 Print some dataset info
 print("Dataset dimension: ", df.shape)
-print("Dataset dtypes: ",df.dtypes)
-print("Dataset head",df.head())
-print("Dataset describe: ",df.describe())
+print("\nDataset dtypes: ")
+print(df.dtypes)
+print("\nDataset head", df.head())
+print("\nDataset describe: ", df.describe())
 
-#####--- 2.1 Create list with interested variables
-#####--- 2.2 Plot numeric variables
+#####--- 2.1 Plot numeric interested variables
 sns.set(color_codes=True)
-fig, axes = plt.subplots(figsize=(20,30), nrows=int(len(Dict_EDA_Prepro["interested_vars"])/2+0.5), ncols=2)
+fig, axes = plt.subplots(figsize=(20, 30), nrows=int(len(Dict_EDA_Prepro["interested_vars"])/2+0.5), ncols=2)
 for i, column in enumerate(Dict_EDA_Prepro["interested_vars"]):
-    sns.distplot(df[column], ax=axes[i//2, i%2])
+    sns.distplot(df[column], ax=axes[i//2, i % 2])
 plt.savefig(Path(Dict_General["path_data"]).joinpath(("Variables' distribution.png")))
+plt.close()
 
-#####--- 2.3  Overview about target relationship
-# 2.3.0 Filter df and then print correlation value
-df = df[df["n_esito"] == Dict_EDA_Prepro["n_esito_filter"]] # perchè teniamo solo queste oss.?s
-print("Correlation: ",df.corr()["media_pressione_velocita_a_regime"]["media_portata_velocita_1"])
+#####--- 2.2  Filter Dataset for a good evaluation
+df = df.query("n_esito == " + Dict_EDA_Prepro["filter_n_esito"] +
+              " and velicita_1 == " + Dict_EDA_Prepro["filter_velocita_1"] +
+              " and velocita_a_regime == " + Dict_EDA_Prepro["filter_velocita_a_regime"] +
+              " and Temperatura >= " + Dict_EDA_Prepro["filter_min_temperatura"] +
+              " and Temperatura <= " + Dict_EDA_Prepro["filter_max_temperatura"] +
+              " and " + Dict_EDA_Prepro["filter_positive_values"])
 
-# 2.3.1 Plot correlaton graph
-plt.scatter(df.media_pressione_velocita_a_regime, df.media_portata_velocita_1)
-plt.title("speed=140rpm, T=40°C")
-plt.xlabel("outlet pressure [bar]")
-plt.ylabel("GP flow rate [L/h]")
-plt.savefig(Path(Dict_General["path_data"]).joinpath("Correlation_pressione_velocità.png"))
+#####--- 2.3 Look for missing values
+# 2.3.1
+print("\nMissing values per variable: ")
+print(df.isnull().sum())
 
-#####--- 2.4 Look for missing values
-# 2.4.0
-print("Missing values per variable: ",df.isnull().sum())
+# 2.3.2 Fill missing values
+imp = SimpleImputer(missing_values=np.nan, strategy="constant", fill_value=' ')
+df = pd.DataFrame(imp.fit_transform(df), columns=df.columns)
+print("Numero missing values:", sum(df.isnull().sum()))
 
-# 2.4.1 Fill missing values
-imputer = SimpleImputer(missing_values=np.nan, strategy="constant", fill_value=" ")
-imputer.fit(df)
-df_tr = pd.DataFrame(imputer.transform(df), columns=df.columns)
-print(sum(df.isnull().sum()))
+#####--- 2.4 Remove univariate outliers
+print("\nDataframe dimension with outliers: ", len(df))
 
-#####--- 2.5 Remove univariate outliers
-print("Dataframe dimension with outliers: ",len(df_tr))
-
-# 2.5.0 Tranform column dtype
+# 2.4.1 Tranform column dtype
 for var in Dict_EDA_Prepro["interested_vars"]:
     if var != "n_esito":
-        df_tr[var] = df_tr[var].astype(float)
-# 2.5.1 Remove outliers
+        df[var] = df[var].astype(float)
+
+# 2.4.2 Remove outliers
 for var in Dict_EDA_Prepro["interested_vars"]:
-    if (var != "n_esito" and df_tr[var].std() != 0):
-        df_tr["zscore"] = pd.Series(np.abs(zscore(df_tr[var])))
-        df_tr.drop(list(df_tr.query("zscore > 3.5").index), inplace=True)
-        df_tr.drop("zscore", 1, inplace=True)
-        print(var, len(df_tr[var]))
+    if var != "n_esito":
+        if df[var].std() != 0:
+            df['zscore'] = pd.Series(np.abs(zscore(df[var])))
+            idx = list(df.query("zscore > 3.5").index)
+            print(var, len(idx))
+            df.drop(idx, inplace=True)
+            df.drop("zscore", 1, inplace=True)
 
-print("Dataframe dimension without outliers: ",df_tr.shape)
+print("Dataframe dimension without outliers: ", df.shape)
 
-#####--- 2.6 Remove some osservations based on scatterplot
-# 2.6.0 Filter df_tr based on media_portata_velocita_1 value
-df_tr = df_tr[(df_tr["media_portata_velocita_1"] >= Dict_EDA_Prepro["media_portata_velocita_1_filter_1"]) &
-                     (df_tr["media_portata_velocita_1"] <= Dict_EDA_Prepro["media_portata_velocita_1_filter_2"])]
+#####--- 2.5 Analyze Regime Phase @2300 rpm
+print("\nCorrelazione grandezze fase di regime @2300rpm")
+print("pressione - portata:\t\t", round(df.corr()['media_pressione_velocita_a_regime']['media_portata_velocita_a_regime'], 3))
+print("coppia_zero - pressione:\t", round(df.corr()['media_coppia_zero']['media_pressione_velocita_a_regime'], 3))
+print("coppia_zero - portata:\t\t", round(df.corr()['media_coppia_zero']['media_portata_velocita_a_regime'], 3))
+print("coppia_finale - pressione:\t", round(df.corr()['media_coppia_finale']['media_pressione_velocita_a_regime'], 3))
+print("coppia_finale - portata:\t", round(df.corr()['media_coppia_finale']['media_portata_velocita_a_regime'], 3))
 
-# 2.6.1 Print correlation
-print("Correlation: ", df_tr.corr()["media_pressione_velocita_a_regime"]["media_portata_velocita_1"])
+# 2.5.1 Linear regression of flow rate on pressure
+X = np.array(df.media_pressione_velocita_a_regime).reshape(-1, 1)
+y = np.array(df.media_portata_velocita_a_regime).reshape(-1, 1)
+reg = LinearRegression().fit(X, y)
+plt.scatter(X, y, color="red")
+plt.plot(X, reg.predict(X), color="green")
+plt.title("Fase di regime @2300rpm")
+plt.xlabel("Pressure [bar]")
+plt.ylabel("Flow Rate [L/h]")
+plt.savefig(Path(Dict_General["path_data"]).joinpath(("Regime Phase [Pressure, Flow Rate].png")))
+plt.close()
+print("GP flow rate =", round(reg.intercept_[0], 3), "+", round(reg.coef_[0][0], 3), "* pressure")
+print("R^2 =", round(reg.score(X, y), 3))
 
-# 2.6.3 Craete scatterplot
-plt.scatter(df_tr.media_pressione_velocita_a_regime, df_tr.media_portata_velocita_1)
-plt.title("speed=140rpm, T=40°C")
-plt.xlabel("outlet pressure [bar]")
-plt.ylabel("GP flow rate [L/h]")
-plt.savefig(Path(Dict_General["path_data"]).joinpath("Correlation_after_NaN.png"))
+#####--- 2.6 Analyze Control Phase @140 rpm
+print("\nCorrelazione grandezze fase di controllo @140rpm")
+print("pressione - portata:\t\t", round(df.corr()['media_pressione_velocita_1']['media_portata_velocita_1'], 3))
+print("coppia_zero - pressione:\t", round(df.corr()['media_coppia_zero']['media_pressione_velocita_1'], 3))
+print("coppia_zero - portata:\t\t", round(df.corr()['media_coppia_zero']['media_portata_velocita_1'], 3))
+print("coppia_finale - pressione:\t", round(df.corr()['media_coppia_finale']['media_pressione_velocita_1'], 3))
+print("coppia_finale - portata:\t", round(df.corr()['media_coppia_finale']['media_portata_velocita_1'], 3))
 
-#####--- 3.0 Export df_tr
-df_tr.to_csv(Path(Dict_General["path_data"]).joinpath("caso_2_after_eda_prepro.csv"))
-print("Exported df_tr")
-print("Finished all EDA and preprocessing")
+# 2.6.1 Linear regression of flow rate on pressure
+X = np.array(df.media_pressione_velocita_1).reshape(-1, 1)
+y = np.array(df.media_portata_velocita_1).reshape(-1, 1)
+reg = LinearRegression().fit(X, y)
+plt.scatter(X, y, color="red")
+plt.plot(X, reg.predict(X), color = "green")
+plt.title("Fase di controllo @140rpm")
+plt.xlabel("Pressure [bar]")
+plt.ylabel("Flow Rate [L/h]")
+plt.savefig(Path(Dict_General["path_data"]).joinpath(("Control Phase [Pressure, Flow Rate].png")))
+plt.close()
+print("GP flow rate =", round(reg.intercept_[0], 3), "+", round(reg.coef_[0][0], 3), "* pressure")
+print("R^2 =", round(reg.score(X, y), 3))
+
+#####--- 2.7 Analyze differences between the two phases
+# 2.7.1 Linear regression of delta flow rate on delta pressure
+X = np.array(df.media_pressione_velocita_a_regime - df.media_pressione_velocita_1).reshape(-1, 1)
+y = np.array(df.media_portata_velocita_a_regime - df.media_portata_velocita_1).reshape(-1, 1)
+reg = LinearRegression().fit(X, y)
+plt.scatter(X, y, color="red")
+plt.plot(X, reg.predict(X), color = "green")
+plt.title("\nCambiamento valori da una fase all'altra")
+plt.xlabel("Delta Pressure [bar]")
+plt.ylabel("Delta Flow Rate [L/h]")
+plt.savefig(Path(Dict_General["path_data"]).joinpath(("Delta between phases [Pressure, Flow Rate].png")))
+plt.close()
+print("\nDelta GP flow rate =", round(reg.intercept_[0], 3), '+', round(reg.coef_[0][0], 3), "* delta pressure")
+print("R^2 =", round(reg.score(X, y), 3))
+
+#####--- 2.8 Export preprocessed data
+df.to_csv(Path(Dict_General["path_data"]).joinpath("gp5_data.csv"), index_label=False)
+print("\nFinished all EDA and preprocessing")
