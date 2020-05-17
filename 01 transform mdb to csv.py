@@ -5,7 +5,7 @@ import os, pyodbc
 import pandas as pd
 
 #spostare il path su C: per diminuire il tempo di esecuzione
-path = r'E:\Intenso\02 Data Science - Bicocca\03 II Anno\II Semestre\Industry Lab\19-20\DB Bosch'
+path = r'C:\Users\Mauro\PycharmProjects\DB Bosch'
 files = ['caso2_2016.mdb', 'caso2_2017.mdb', 'caso2_2018.mdb', 'caso2_2019.mdb', 'caso2_2020.mdb']
 all_data = pd.DataFrame()
 
