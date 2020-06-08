@@ -1,6 +1,6 @@
 ######################### 0. GENERAL PARAMETERS #########################
 Dict_General = {
-    "path_data": "C:/Users/Mauro/PycharmProjects/DB Bosch" # To be changed
+    "path_data": "/Users/ivanmera/Documents/Industry_Lab" # To be changed
     }
 Dict_EDA_Prepro = {
     "interested_vars": ['picco_coppia_zero', 'media_coppia_zero', 'picco_pressione_velocita_1', 'media_pressione_velocita_1',
@@ -14,7 +14,8 @@ Dict_EDA_Prepro = {
     "filter_max_temperatura": "43",
     "filter_positive_values": "media_portata_velocita_a_regime > 0 and media_pressione_velocita_a_regime > 0" +
                               " and media_portata_velocita_1 > 0 and media_pressione_velocita_1 > 0",
-    }
-Dict_Modeling = {
-    "eff_regime": 0.95
+    "n_obs_per_pgm": 1000
+}
+Dict_Viz = {
+    "gp_theo": 108.36
 }
