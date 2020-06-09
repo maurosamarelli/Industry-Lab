@@ -67,3 +67,5 @@ df["leakage_coeff"] = (df["gp_theo"] - df["portata_pred"])/ df["media_pressione_
 #########################################################################################
 df.to_excel(Path(Dict_General["path_data"]).joinpath("gp5_viz_data.xlsx"), index = False)
 print("\nExported all files")
+
+#riga di prova
