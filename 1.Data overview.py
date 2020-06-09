@@ -29,7 +29,7 @@ print("\nDataset describe: ", df.describe())
 
 #####--- 2.1 Plot numeric interested variables
 df[Dict_EDA_Prepro["interested_vars"]].hist(bins=50, figsize=(20,15))
-plt.savefig(Path(Dict_General["path_data"]).joinpath(("Variables distribution.png")))
+plt.savefig(Path(Dict_General["path_img_out"]).joinpath(("Variables distribution.png")))
 plt.close()
 #####--- 2.2  Filter Dataset for a good evaluation
 # 2.2.0 Apply some filters
@@ -112,7 +112,7 @@ corr_regime_phase = pd.plotting.scatter_matrix(df_for_corr_graph[["Pressione_Reg
 #Hide all ticks
 [s.set_xticks(()) for s in corr_regime_phase.reshape(-1)]
 [s.set_yticks(()) for s in corr_regime_phase.reshape(-1)]
-plt.savefig(Path(Dict_General["path_data"]).joinpath(("Correlation_Regime_Phase.png")))
+plt.savefig(Path(Dict_General["path_img_out"]).joinpath(("Correlation_Regime_Phase.png")))
 plt.close()
 #####--- 2.6 Analyze Control Phase @140 rpm
 print("\nCorrelazione grandezze fase di controllo @140rpm")
@@ -143,7 +143,7 @@ corr_control_phase = pd.plotting.scatter_matrix(df_for_corr_graph[["Pressione_Co
 #Hide all ticks
 [s.set_xticks(()) for s in corr_control_phase.reshape(-1)]
 [s.set_yticks(()) for s in corr_control_phase.reshape(-1)]
-plt.savefig(Path(Dict_General["path_data"]).joinpath(("Correlation_Control_Phase.png")))
+plt.savefig(Path(Dict_General["path_img_out"]).joinpath(("Correlation_Control_Phase.png")))
 plt.close()
 #####--- 2.7 Analyze differences between the two phases
 # 2.7.1 Linear regression of delta flow rate on delta pressure
@@ -155,7 +155,7 @@ plt.plot(X, reg.predict(X), color = "red")
 plt.title("\nCambiamento valori da una fase all'altra")
 plt.xlabel("Delta Pressure [bar]")
 plt.ylabel("Delta Flow Rate [L/h]")
-plt.savefig(Path(Dict_General["path_data"]).joinpath(("Delta between phases [Pressure, Flow Rate].png")))
+plt.savefig(Path(Dict_General["path_img_out"]).joinpath(("Delta between phases [Pressure, Flow Rate].png")))
 plt.close()
 print("\nDelta GP flow rate =", round(reg.intercept_[0], 3), '+', round(reg.coef_[0][0], 3), "* delta pressure")
 print("R^2 =", round(reg.score(X, y), 3))

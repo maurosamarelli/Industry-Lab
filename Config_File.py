@@ -1,6 +1,7 @@
 ######################### 0. GENERAL PARAMETERS #########################
 Dict_General = {
-    "path_data": "/Users/ivanmera/Documents/Industry_Lab" # To be changed
+    "path_data": "/Users/ivanmera/Documents/Industry_Lab",# To be changed
+    "path_img_out": "/Users/ivanmera/Documents/Industry_Lab/Template_relazione" # To be changed
     }
 Dict_EDA_Prepro = {
     "interested_vars": ['picco_coppia_zero', 'media_coppia_zero', 'picco_pressione_velocita_1', 'media_pressione_velocita_1',
