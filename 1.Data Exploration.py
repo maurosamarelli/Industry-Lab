@@ -26,8 +26,8 @@ print("Dataset dimension: ", df.shape)
 print("\nDataset dtypes: ",df.dtypes)
 
 #####--- 2.1 Plot numeric interested variables
-df[Dict_EDA_Prepro["interested_vars"]].hist(bins=50, figsize=(20,15))
-plt.savefig(Path(Dict_General["path_img_out"]).joinpath(("Variables distribution.png")))
+df[Dict_EDA_Prepro["var_dist"]].hist(bins=50, figsize=(20,15))
+plt.savefig(Path(Dict_General["path_img_out"]).joinpath(("Variables_distribution.png")))
 plt.close()
 #####--- 2.2  Filter Dataset for a good evaluation
 # 2.2.0 Apply some filters
