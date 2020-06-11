@@ -25,7 +25,7 @@ print("Dataset dimension:", df.shape)
 #####--- 2.0 Split train/test set
 df_pgm_18 = df.loc[df["Programma"]=="18_GP5_910_CW.DBF",
                      ["media_portata_velocita_1","media_pressione_velocita_1","Programma"]].copy()
-train_18, test_18= train_test_split(df_pgm_18,test_size=0.2)
+train_18, test_18= train_test_split(df_pgm_18,test_size=0.2, random_state=42)
 x_train_18 = train_18.drop(["media_portata_velocita_1","Programma"], 1)
 y_train_18 = train_18["media_portata_velocita_1"]
 x_test_18 = test_18.drop(["media_portata_velocita_1","Programma"], 1)
