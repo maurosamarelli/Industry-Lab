@@ -6,8 +6,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.stats import zscore
-from Config_File import Dict_General
-from Config_File import Dict_EDA_Prepro
+from Config_File import Dict_General,Dict_EDA_Prepro,Dict_Viz
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LinearRegression
 import warnings
@@ -17,6 +16,8 @@ warnings.simplefilter("ignore")
 #######################--- 1. IMPORT DATA & SET-UP PARAMETERS ---########################
 #########################################################################################
 df = pd.read_csv(Path(Dict_General["path_data"]).joinpath("caso2_ALL_ESITI.csv"))
+df.reset_index(inplace = True)
+df.drop("index",axis = 1, inplace = True)
 
 #########################################################################################
 #######################--- 2. EXPLORATORY DATA ANALYSIS ---########################
@@ -59,18 +60,18 @@ df_for_corr_graph.rename(columns={"media_pressione_velocita_a_regime":"Pressione
                                   "media_portata_velocita_1":"Portata_Controllo",
                                   "media_coppia_zero":"Coppia_Zero",
                                   "media_coppia_finale":"Coppia_Finale"}, inplace = True)
-corr_regime_phase = pd.plotting.scatter_matrix(df_for_corr_graph[["Pressione_Regime","Portata_Regime",
-                                                                  "Coppia_Zero","Coppia_Finale","Temperatura"]],
-                                               figsize=(16, 12), diagonal = "kde")
-[s.xaxis.label.set_rotation(45) for s in corr_regime_phase.reshape(-1)]
-[s.yaxis.label.set_rotation(0) for s in corr_regime_phase.reshape(-1)]
+#corr_regime_phase = pd.plotting.scatter_matrix(df_for_corr_graph[["Pressione_Regime","Portata_Regime",
+                                                                  #"Coppia_Zero","Coppia_Finale","Temperatura"]],
+                                               #figsize=(16, 12), diagonal = "kde")
+#[s.xaxis.label.set_rotation(45) for s in corr_regime_phase.reshape(-1)]
+#[s.yaxis.label.set_rotation(0) for s in corr_regime_phase.reshape(-1)]
 #May need to offset label when rotating to prevent overlap of figure
-[s.get_yaxis().set_label_coords(-0.3,0.5) for s in corr_regime_phase.reshape(-1)]
+#[s.get_yaxis().set_label_coords(-0.3,0.5) for s in corr_regime_phase.reshape(-1)]
 #Hide all ticks
-[s.set_xticks(()) for s in corr_regime_phase.reshape(-1)]
-[s.set_yticks(()) for s in corr_regime_phase.reshape(-1)]
-plt.savefig(Path(Dict_General["path_img_out"]).joinpath(("Correlation_Regime_Phase.png")))
-plt.close()
+#[s.set_xticks(()) for s in corr_regime_phase.reshape(-1)]
+#[s.set_yticks(()) for s in corr_regime_phase.reshape(-1)]
+#plt.savefig(Path(Dict_General["path_img_out"]).joinpath(("Correlation_Regime_Phase.png")))
+#plt.close()
 #####--- 2.3 Analyze Control Phase @140 rpm
 print("\nCorrelazione grandezze fase di controllo @140rpm")
 
@@ -90,18 +91,18 @@ print("coppia_finale - pressione:\t", round(df.corr()['media_coppia_finale']['me
 print("coppia_finale - portata:\t", round(df.corr()['media_coppia_finale']['media_portata_velocita_1'], 3))
 
 # 2.3.5 Save correlation graph
-corr_control_phase = pd.plotting.scatter_matrix(df_for_corr_graph[["Pressione_Controllo","Portata_Controllo",
-                                                                  "Coppia_Zero","Coppia_Finale","Temperatura"]],
-                                                figsize=(16, 12), diagonal = "kde")
-[s.xaxis.label.set_rotation(45) for s in corr_control_phase.reshape(-1)]
-[s.yaxis.label.set_rotation(0) for s in corr_control_phase.reshape(-1)]
+#corr_control_phase = pd.plotting.scatter_matrix(df_for_corr_graph[["Pressione_Controllo","Portata_Controllo",
+                                                                  #"Coppia_Zero","Coppia_Finale","Temperatura"]],
+                                                #figsize=(16, 12), diagonal = "kde")
+#[s.xaxis.label.set_rotation(45) for s in corr_control_phase.reshape(-1)]
+#[s.yaxis.label.set_rotation(0) for s in corr_control_phase.reshape(-1)]
 #May need to offset label when rotating to prevent overlap of figure
-[s.get_yaxis().set_label_coords(-0.3,0.5) for s in corr_control_phase.reshape(-1)]
+#[s.get_yaxis().set_label_coords(-0.3,0.5) for s in corr_control_phase.reshape(-1)]
 #Hide all ticks
-[s.set_xticks(()) for s in corr_control_phase.reshape(-1)]
-[s.set_yticks(()) for s in corr_control_phase.reshape(-1)]
-plt.savefig(Path(Dict_General["path_img_out"]).joinpath(("Correlation_Control_Phase.png")))
-plt.close()
+#[s.set_xticks(()) for s in corr_control_phase.reshape(-1)]
+#[s.set_yticks(()) for s in corr_control_phase.reshape(-1)]
+#plt.savefig(Path(Dict_General["path_img_out"]).joinpath(("Correlation_Control_Phase.png")))
+#plt.close()
 
 #####--- 2.4 Analyze differences between the two phases
 # 2.4.0 Linear regression of delta flow rate on delta pressure
@@ -152,6 +153,8 @@ for var in Dict_EDA_Prepro["interested_vars"]:
 
 # 2.7.1 Remove outliers
 for var in Dict_EDA_Prepro["interested_vars"]:
+    df.reset_index(inplace=True)
+    df.drop("index", axis=1, inplace=True)
     if var != "n_esito":
         if df[var].std() != 0:
             df['zscore'] = pd.Series(np.abs(zscore(df[var])))
@@ -162,7 +165,15 @@ for var in Dict_EDA_Prepro["interested_vars"]:
 
 print("Dataframe dimension without outliers: ", df.shape)
 #########################################################################################
-#######################--- 3. EXPORT DATA---########################
+#######################--- 3. VISUALIZATION ---########################
 #########################################################################################
-df.to_csv(Path(Dict_General["path_data"]).joinpath("gp5_data.csv"), index_label=False)
-print("\nFinished all EDA and preprocessing")
+#####--- 3.0 Compute Leakage coefficient
+df["gp_theo"] = Dict_Viz["gp_theo"]
+df["leakage_coeff"] = (df["gp_theo"] - df["media_portata_velocita_1"])/ df["media_pressione_velocita_1"]
+
+#########################################################################################
+#######################--- 4. EXPORT DATA---########################
+#########################################################################################
+df.to_csv(Path(Dict_General["path_data"]).joinpath("gp5_viz_data.csv"),
+                index = False, sep = ";", decimal = ",")
+print("\nExported all files")
