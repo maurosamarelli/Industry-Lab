@@ -14,8 +14,6 @@ Dict_EDA_Prepro = {
     "filter_n_esito": "100",
     "filter_velocita_1": "140",
     "filter_velocita_a_regime": "2300",
-    "filter_min_temperatura": "39",
-    "filter_max_temperatura": "43",
     "filter_positive_values": "media_portata_velocita_a_regime > 0 and media_pressione_velocita_a_regime > 0" +
                               " and media_portata_velocita_1 > 0 and media_pressione_velocita_1 > 0",
     "n_obs_per_pgm": 1000

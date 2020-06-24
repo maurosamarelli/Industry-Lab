@@ -124,8 +124,6 @@ print("R^2 =", round(reg.score(X, y), 3))
 df = df.query("n_esito == " + Dict_EDA_Prepro["filter_n_esito"] +
               " and velicita_1 == " + Dict_EDA_Prepro["filter_velocita_1"] +
               " and velocita_a_regime == " + Dict_EDA_Prepro["filter_velocita_a_regime"] +
-              " and Temperatura >= " + Dict_EDA_Prepro["filter_min_temperatura"] +
-              " and Temperatura <= " + Dict_EDA_Prepro["filter_max_temperatura"] +
               " and " + Dict_EDA_Prepro["filter_positive_values"])
 
 # 2.5.1 Remove "Programmma" with less than 1000 osservations
