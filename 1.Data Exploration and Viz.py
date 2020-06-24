@@ -126,11 +126,6 @@ df = df.query("n_esito == " + Dict_EDA_Prepro["filter_n_esito"] +
               " and velocita_a_regime == " + Dict_EDA_Prepro["filter_velocita_a_regime"] +
               " and " + Dict_EDA_Prepro["filter_positive_values"])
 
-# 2.5.1 Remove "Programmma" with less than 1000 osservations
-print(df["Programma"].value_counts())
-df = df.groupby('Programma').filter(lambda x: len(x) >=Dict_EDA_Prepro["n_obs_per_pgm"])
-print(len(df[df["n_esito"]!=100]))
-
 #####--- 2.6 Look for missing values
 # 2.6.1
 print("\nMissing values per variable: ")
@@ -162,6 +157,11 @@ for var in Dict_EDA_Prepro["interested_vars"]:
             df.drop("zscore", 1, inplace=True)
 
 print("Dataframe dimension without outliers: ", df.shape)
+
+# 2.7.2 Remove "Programmma" with less than 1000 osservations
+print(df["Programma"].value_counts())
+df = df.groupby('Programma').filter(lambda x: len(x) >=Dict_EDA_Prepro["n_obs_per_pgm"])
+print(len(df[df["n_esito"]!=100]))
 #########################################################################################
 #######################--- 3. VISUALIZATION ---########################
 #########################################################################################
